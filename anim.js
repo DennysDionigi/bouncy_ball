@@ -29,7 +29,7 @@ const checkImageFormat = async () => {
 
   const currentFrame = (index, fmt) => `./pallina/${(index + 1).toString()}.${fmt}`;
 
-  const render = () => {
+  /*const render = () => {
     if (images[ball.frame]) {
       const img = images[ball.frame];
      const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
@@ -38,7 +38,32 @@ const checkImageFormat = async () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(img, x, y, img.width * scale, img.height * scale);
     }
+  };*/
+
+
+
+const render = () => {
+    if (images.length > 0) {
+      const img = images[0];
+      if (canvas.width !== img.width || canvas.height !== img.height) {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+      const frameIndex = Math.min(ball.frame, images.length - 1);
+      const frame = images[frameIndex];
+      if (frame) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        const x = (canvas.width - frame.width) / 2;
+        const y = (canvas.height - frame.height) / 2;
+        context.drawImage(frame, x, y);
+      }
+    }
   };
+
+
+
+
+
 
 
 const preloadImages = async (fmt) => {
