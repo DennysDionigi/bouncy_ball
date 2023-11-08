@@ -20,7 +20,7 @@ const checkImageFormat = async () => {
                                'aW1mMmF2aWZpbW1mMmF2aWYAAAAADnJpc2FtcGxlIGltYWdl').then(r => r.blob()).then(createImageBitmap);
       return avif && webp ? 'avif' : 'webp';
     } catch(e) {
-      return 'webp';
+      return 'avif';
     }
   }
 };
