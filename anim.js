@@ -90,13 +90,13 @@ const checkImageFormat = async () => {
     );
   };
 
-  /*format = await checkImageFormat();
-  await preloadImages(format);*/
+  format = await checkImageFormat();
+  await preloadImages(format);
 
-  (async () => {
+  /*(async () => {
     format = await checkImageFormat();
     await preloadImages(format);
-  })();
+  })();*/
 
 
 
