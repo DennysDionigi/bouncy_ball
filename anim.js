@@ -27,7 +27,7 @@ class PreloadedImage extends HTMLElement {
   }
 
   getImageSrc(index) {
-    return `./pallina/${(index + 1).toString()}.jpg`;
+    return `./pallina/${(index + 1).toString()}.avif`;
   }
 }
 
