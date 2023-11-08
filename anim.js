@@ -1,6 +1,6 @@
 const canvas = document.querySelector(".canvas");
 const context = canvas.getContext("2d");
-context.scale(2, 2);
+context.scale(.5, .5);
 const frameCount = 179;
 const images = [];
 const ball = { frame: 0 };
