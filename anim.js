@@ -80,4 +80,4 @@ async () => {
     const nextChunkStart = Math.floor(window.scrollY / (document.body.scrollHeight / (frameCount / preloadCount))) * preloadCount;
     loadImages(nextChunkStart);
   });
-})();
+}();
