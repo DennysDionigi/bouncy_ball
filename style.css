@@ -20,10 +20,10 @@ body {
 canvas {
   width: 100vw;
   height: 100vh;
-  object-fit: cover;
+  object-fit: contain;
 }
 
-.details {min-height: 100vh;display: flex;justify-content: center;align-items: center;}
+.details {min-height: 100vh;display: flex;justify-content: center;align-items: center;z-index:1}
 
 .details,h1 {font-size:2rem;}
 
