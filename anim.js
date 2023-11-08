@@ -21,7 +21,7 @@ const checkImageFormat = async () => {
       await createImageBitmap(await (await fetch(webp)).blob());
       return 'webp'; // WEBP is supported
     } catch {
-      return 'jpg'; // Fallback to JPG
+      return 'webp'; // Fallback  default
     }
   }
 };
