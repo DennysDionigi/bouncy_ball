@@ -72,7 +72,7 @@ gsap.fromTo('.ball-text',
 };
 
 
-async () => {
+(async () => {
   const format = await checkImageFormat();
   // Preload the initial chunk of images
   loadImages(0);
@@ -80,4 +80,5 @@ async () => {
     const nextChunkStart = Math.floor(window.scrollY / (document.body.scrollHeight / (frameCount / preloadCount))) * preloadCount;
     loadImages(nextChunkStart);
   });
-}();
+})();
+
