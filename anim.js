@@ -21,7 +21,7 @@ const checkImageFormat = async () => {
 };
 
 // Function to get the image path based on the detected format and index
-const currentFrame = (index, format) => `./best-ball/${(index + 1).toString()}.${format}`;
+const currentFrame = (index, format) => `./pallina/${(index + 1).toString()}.${format}`;
 
 // Function to preload and cache images
 const preloadImages = async (format) => {
