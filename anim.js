@@ -1,15 +1,17 @@
-(async() => {
+(async () => {
   const canvas = document.querySelector('.canvas');
   const context = canvas.getContext('2d');
   const frameCount = 179;
   const chunkSize = 20;
-  const images = [];
-  let format = 'avif';
+  const images = new Array(frameCount);
+  let format = 'avif'; // Default format assumed
   let loadedImagesCount = 0;
+  let allImagesLoaded = false;
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  // Function to check supported image format
  // Controllo webp e avif
 const checkImageFormat = async () => {
   if (createImageBitmap && window.fetch) {
@@ -25,7 +27,10 @@ const checkImageFormat = async () => {
   }
 };
 
+  // Function to return the path for a frame
   const currentFrame = (index, fmt) => `./pallina/${(index + 1).toString()}.${fmt}`;
+
+  // Function to render the current frame
   const render = (frameIndex) => {
     const img = images[frameIndex];
     if (img && img.complete) {
@@ -37,43 +42,48 @@ const checkImageFormat = async () => {
     }
   };
 
-  const preloadChunk = async (chunkIndex, fmt) => {
-    const startIndex = chunkIndex * chunkSize;
-    const endIndex = Math.min(startIndex + chunkSize, frameCount);
-    const promises = [];
-
-    for (let i = startIndex; i < endIndex; i++) {
-      promises.push(new Promise(async (resolve) => {
-        const response = await fetch(currentFrame(i, fmt));
-        const blob = await response.blob();
-        images[i] = new Image();
-        images[i].src = URL.createObjectURL(blob);
-        images[i].onload = () => { URL.revokeObjectURL(images[i].src); resolve(); };
-        images[i].onerror = resolve;
-      }));
-    }
-
-    await Promise.all(promises);
-    loadedImagesCount += promises.length;
-  };
-
+  // Function to preload images in chunks
   const preloadImages = async (fmt) => {
-    for (let i = 0; i < Math.ceil(frameCount / chunkSize); i++) {
-      await preloadChunk(i, fmt);
+    for (let i = 0; i < frameCount; i += chunkSize) {
+      const chunkPromises = [];
+      for (let j = i; j < i + chunkSize && j < frameCount; j++) {
+        chunkPromises.push(new Promise(async (resolve) => {
+          const response = await fetch(currentFrame(j, fmt));
+          const blob = await response.blob();
+          const image = new Image();
+          image.src = URL.createObjectURL(blob);
+          image.onload = () => {
+            URL.revokeObjectURL(image.src);
+            images[j] = image;
+            loadedImagesCount++;
+            if (loadedImagesCount === frameCount) {
+              allImagesLoaded = true;
+            }
+            resolve();
+          };
+          image.onerror = resolve;
+        }));
+      }
+      await Promise.all(chunkPromises);
     }
-    startAnimation();
   };
 
+  // Function to start the GSAP animation
   const startAnimation = () => {
-    gsap.to({frame: 0}, {
+    if (!allImagesLoaded) {
+      console.error('Attempt to start animation before all images are loaded.');
+      return;
+    }
+    const ball = { frame: 0 }; // Object to keep track of the current frame
+    gsap.to(ball, {
       frame: frameCount - 1,
       snap: "frame",
       ease: "none",
       scrollTrigger: {
-        scrub: 0.5,
+        scrub: true,
         pin: true,
         end: "+=3000",
-        onUpdate: self => render(Math.round(self.frame))
+        onUpdate: () => render(Math.round(ball.frame))
       }
     });
     gsap.fromTo('.ball-text', 
@@ -92,21 +102,10 @@ const checkImageFormat = async () => {
 
   format = await checkImageFormat();
   await preloadImages(format);
-
-  /*(async () => {
-    format = await checkImageFormat();
-    await preloadImages(format);
-  })();*/
-
-
-
+  const loadingCheckInterval = setInterval(() => {
+    if (allImagesLoaded) {
+      clearInterval(loadingCheckInterval);
+      startAnimation();
+    }
+  }, 100);
 })();
-
-
-
-
-
-
-
-
-
