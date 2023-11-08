@@ -28,6 +28,28 @@ const checkImageFormat = async () => {
 // Function to get the frame path
 const currentFrame = (index, format) => `./pallina/${(index + 1).toString()}.${format}`;
 
+// Frame corrente e base 
+const render = () => {
+  if (images.length > 0) {
+    const img = images[0];
+    // Spazio in base alla prima img x centrare il rendering
+    if (canvas.width !== img.width || canvas.height !== img.height) {
+      canvas.width = img.width;
+      canvas.height = img.height;
+    }
+
+    const frameIndex = Math.min(ball.frame, images.length - 1); // Ensure the frame index is valid
+    const frame = images[frameIndex];
+    if (frame) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      // Posizione img rispetto al canvas
+      const x = (canvas.width - frame.width) / 2;
+      const y = (canvas.height - frame.height) / 2;
+      context.drawImage(frame, x, y); // Centra l'img
+    }
+  }
+};
+
 // Function to preload images
 const preloadImages = async (format) => {
   const cache = await caches.open(cacheName);
@@ -40,16 +62,28 @@ const preloadImages = async (format) => {
     }
     const blob = await response.blob();
     const image = new Image();
-    image.src = URL.createObjectURL(blob);
     image.onload = () => {
-      URL.revokeObjectURL(image.src); // Free up the object URL after the image is loaded
+      imagesLoaded++;
+      if (imagesLoaded === 1) {
+        // Imposta dimensione spazio lavoro
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0); // Disegna primo frame
+      }
+      URL.revokeObjectURL(image.src); // svuota memoria
+      images[i] = image; // Array di immagini
+      if (imagesLoaded === frameCount) { // controlls
+        startAnimation(); // Inizia dopo la cache
+      }
     };
-    images.push(image);
+    image.onerror = () => {
+      console.error('Error loading image:', imagePath);
+    };
+    image.src = URL.createObjectURL(blob);
   }
-  startAnimation();
 };
 
-// Function to start the GSAP animation
+// GSAP
 const startAnimation = () => {
   gsap.to(ball, {
     frame: frameCount - 1,
@@ -59,7 +93,7 @@ const startAnimation = () => {
       scrub: true,
       pin: ".canvas",
       end: "+=3000",
-      onUpdate: () => render() // Update the frame on scroll
+      onUpdate: () => render() // Aggiorna frame allo scroll
     }
   });
 
@@ -79,14 +113,8 @@ const startAnimation = () => {
   
 };
 
-// Function to render the current frame
-const render = () => {
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  const frameIndex = Math.min(ball.frame, images.length - 1); // Ensure the frame index is valid
-  context.drawImage(images[frameIndex], 0, 0);
-};
 
-// Main execution
+// Esegui il tutto in asyncrono
 (async () => {
   const format = await checkImageFormat();
   await preloadImages(format);
