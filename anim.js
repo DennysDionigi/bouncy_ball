@@ -1,4 +1,5 @@
-const canvas = document.querySelector(".canvas");
+(()=>{
+  const canvas = document.querySelector(".canvas");
 const context = canvas.getContext("2d");
 context.scale(1, 1);
 const frameCount = 179;
@@ -120,3 +121,6 @@ const startAnimation = () => {
   const format = await checkImageFormat();
   await preloadImages(format);
 })();
+
+})();
+
