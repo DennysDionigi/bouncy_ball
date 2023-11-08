@@ -1,0 +1,35 @@
+*, ::before, ::after {
+  margin:0;padding:0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: rgb(0 0 0 / 0);
+    touch-action: pan-x pan-y;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+:root,body{
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Lato", sans-serif;
+  overflow-x: hidden;
+  width:100%;
+  min-height:100cqh
+}
+
+canvas {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+}
+
+.details {min-height: 100vh;display: flex;justify-content: center;align-items: center;}
+
+.details,h1 {font-size:2rem;}
+
+.ball-text {
+position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);
+@media(width > 1024px){ font-size: 5rem;right: 20%;bottom: 40%;transform: translate(-20%, -40%)}
+}
+
