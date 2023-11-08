@@ -5,6 +5,7 @@ const frameCount = 179;
 const images = [];
 const ball = { frame: 0 };
 const cacheName = 'ball-animation-frames';
+let imagesLoaded = 0;
 
 // Dimensione canvas
 canvas.width = window.innerWidth;
