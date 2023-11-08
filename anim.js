@@ -2,12 +2,10 @@
   const canvas = document.querySelector('.canvas');
   const context = canvas.getContext('2d');
   const frameCount = 179;
-  const chunkSize = 20; // Number of images to load per chunk
+  const chunkSize = 20;
   const images = [];
-  const ball = { frame: 0 };
-  let format = 'avif'; // Default format
-  let currentChunk = 0;
-  let allImagesLoaded = false;
+  let format = 'avif';
+  let loadedImagesCount = 0;
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -28,60 +26,56 @@ const checkImageFormat = async () => {
 };
 
   const currentFrame = (index, fmt) => `./pallina/${(index + 1).toString()}.${fmt}`;
-
-  const render = () => {
-    if (images[ball.frame]) {
-      const img = images[ball.frame];
+  const render = (frameIndex) => {
+    const img = images[frameIndex];
+    if (img && img.complete) {
+      const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+      const x = (canvas.width - img.width * scale) / 2;
+      const y = (canvas.height - img.height * scale) / 2;
       context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(img, (canvas.width - img.width) / 2, (canvas.height - img.height) / 2);
+      context.drawImage(img, x, y, img.width * scale, img.height * scale);
     }
   };
 
-  const preloadImages = async (fmt) => {
-    while (currentChunk < Math.ceil(frameCount / chunkSize)) {
-      const chunkStart = currentChunk * chunkSize;
-      const chunkEnd = Math.min(chunkStart + chunkSize, frameCount);
+  const preloadChunk = async (chunkIndex, fmt) => {
+    const startIndex = chunkIndex * chunkSize;
+    const endIndex = Math.min(startIndex + chunkSize, frameCount);
+    const promises = [];
 
-      for (let i = chunkStart; i < chunkEnd; i++) {
-        if (images[i]) continue; // vai al prossimo tronco
-
-        const imagePath = currentFrame(i, fmt);
-        const response = await fetch(imagePath);
+    for (let i = startIndex; i < endIndex; i++) {
+      promises.push(new Promise(async (resolve) => {
+        const response = await fetch(currentFrame(i, fmt));
         const blob = await response.blob();
         images[i] = new Image();
         images[i].src = URL.createObjectURL(blob);
-
-        images[i].onload = (() => {
-          URL.revokeObjectURL(images[i].src); // libera mem
-          if (i === frameCount - 1) {
-            allImagesLoaded = true;
-            startAnimation();
-          }
-        });
-      }
-
-      currentChunk++;
+        images[i].onload = () => { URL.revokeObjectURL(images[i].src); resolve(); };
+        images[i].onerror = resolve;
+      }));
     }
+
+    await Promise.all(promises);
+    loadedImagesCount += promises.length;
+  };
+
+  const preloadImages = async (fmt) => {
+    for (let i = 0; i < Math.ceil(frameCount / chunkSize); i++) {
+      await preloadChunk(i, fmt);
+    }
+    startAnimation();
   };
 
   const startAnimation = () => {
-    if (!allImagesLoaded) {
-      console.error('Animation attempted to start before all images were loaded.');
-      return;
-    }
-
-    gsap.to(ball, {
+    gsap.to({frame: 0}, {
       frame: frameCount - 1,
       snap: "frame",
       ease: "none",
       scrollTrigger: {
-        scrub: true,
-        pin: ".canvas",
+        scrub: 0.5,
+        pin: true,
         end: "+=3000",
-        onUpdate: () => render()
+        onUpdate: self => render(Math.round(self.frame))
       }
     });
-
     gsap.fromTo('.ball-text', 
       { opacity: 0 },
       {
@@ -96,12 +90,23 @@ const checkImageFormat = async () => {
     );
   };
 
+  /*format = await checkImageFormat();
+  await preloadImages(format);*/
+
   (async () => {
     format = await checkImageFormat();
     await preloadImages(format);
   })();
+
+
+
 })();
 
 
 
- 
+
+
+
+
+
+
