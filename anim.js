@@ -11,17 +11,15 @@ canvas.height = window.innerHeight;
 
 // Function to check for AVIF and WEBP support and determine the image format to use
 const checkImageFormat = async () => {
-  const avif = 'data:image/avif;base64,...'; // Replace with actual base64 encoded AVIF image
-  const webp = 'data:image/webp;base64,...'; // Replace with actual base64 encoded WEBP image
-  try {
-    await createImageBitmap(await (await fetch(avif)).blob());
-    return 'avif'; // AVIF is supported
-  } catch {
+  if (createImageBitmap && window.fetch) {
     try {
-      await createImageBitmap(await (await fetch(webp)).blob());
-      return 'webp'; // WEBP is supported
-    } catch {
-      return 'webp'; // Fallback  default
+      const webp = await fetch('data:image/webp;base64,UklGRi4AAABXRUJQVlA4TCEAAAAvAUAAEB8wAiMw' + 
+                               'AgSSNtse/cXjxyCCmrYNWPwmHRH9jwMA').then(r => r.blob()).then(createImageBitmap);
+      const avif = await fetch('data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZt' + 
+                               'aW1mMmF2aWZpbW1mMmF2aWYAAAAADnJpc2FtcGxlIGltYWdl').then(r => r.blob()).then(createImageBitmap);
+      return avif && webp ? 'avif' : 'webp';
+    } catch(e) {
+      return 'webp';
     }
   }
 };
