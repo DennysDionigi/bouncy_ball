@@ -1,90 +1,103 @@
 const canvas = document.querySelector(".canvas");
 const context = canvas.getContext("2d");
+context.scale(1, 1);
 const frameCount = 179;
-const chunkSize = 20; // Number of images to preload in each chunk
-const images = new Array(frameCount).fill(null);
-const cacheName = 'ball-animation-frames';
+const images = [];
 const ball = { frame: 0 };
-let format = 'avif'; // Start with avif as default format
-let currentChunk = 0;
-let loadingChunks = false;
+const cacheName = 'ball-animation-frames';
+let imagesLoaded = 0;
 
+// Dimensione canvas
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Check for image format support
+// Controllo webp e avif
 const checkImageFormat = async () => {
   if (createImageBitmap && window.fetch) {
     try {
-      await createImageBitmap(await (await fetch('data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZt' + 
-                               'aW1mMmF2aWZpbW1mMmF2aWYAAAAADnJpc2FtcGxlIGltYWdl')).blob());
+      const webp = await fetch('data:image/webp;base64,UklGRi4AAABXRUJQVlA4TCEAAAAvAUAAEB8wAiMw' + 
+                               'AgSSNtse/cXjxyCCmrYNWPwmHRH9jwMA').then(r => r.blob()).then(createImageBitmap);
+      const avif = await fetch('data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZt' + 
+                               'aW1mMmF2aWZpbW1mMmF2aWYAAAAADnJpc2FtcGxlIGltYWdl').then(r => r.blob()).then(createImageBitmap);
+      return avif && webp ? 'avif' : 'webp';
+    } catch(e) {
       return 'avif';
-    } catch {
-      return 'webp';
     }
   }
 };
 
-// Generate the path for the current frame
-const currentFrame = (index, fmt) => `./pallina/${(index + 1).toString()}.${fmt}`;
+// Function to get the frame path
+const currentFrame = (index, format) => `./pallina/${(index + 1).toString()}.${format}`;
 
-// Render the current frame
+// Frame corrente e base 
 const render = () => {
-  const frameIndex = Math.min(ball.frame, images.length - 1);
-  const frame = images[frameIndex];
-  if (frame && frame.complete) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(frame, (canvas.width - frame.width) / 2, (canvas.height - frame.height) / 2);
+  if (images.length > 0) {
+    const img = images[0];
+    // Spazio in base alla prima img x centrare il rendering
+    if (canvas.width !== img.width || canvas.height !== img.height) {
+      canvas.width = img.width;
+      canvas.height = img.height;
+    }
+
+    const frameIndex = Math.min(ball.frame, images.length - 1); // Ensure the frame index is valid
+    const frame = images[frameIndex];
+    if (frame) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      // Posizione img rispetto al canvas
+      const x = (canvas.width - frame.width) / 2;
+      const y = (canvas.height - frame.height) / 2;
+      context.drawImage(frame, x, y); // Centra l'img
+    }
   }
 };
 
-// Preload images in chunks
-const preloadImages = async (start, fmt) => {
-  if (loadingChunks) return; // Prevent multiple concurrent loading sequences
-  loadingChunks = true;
-
+// Function to preload images
+const preloadImages = async (format) => {
   const cache = await caches.open(cacheName);
-  const endIndex = Math.min(start + chunkSize, frameCount);
-  for (let i = start; i < endIndex; i++) {
-    if (images[i]) continue; // Skip if already loaded
-    const imagePath = currentFrame(i, fmt);
+  for (let i = 0; i < frameCount; i++) {
+    const imagePath = currentFrame(i, format);
     let response = await cache.match(imagePath);
     if (!response) {
       response = await fetch(imagePath);
-      await cache.put(imagePath, response.clone());
+      cache.put(imagePath, response.clone());
     }
     const blob = await response.blob();
-    images[i] = new Image();
-    images[i].src = URL.createObjectURL(blob);
-    images[i].onload = () => URL.revokeObjectURL(images[i].src);
+    const image = new Image();
+    image.onload = () => {
+      imagesLoaded++;
+      if (imagesLoaded === 1) {
+        // Imposta dimensione spazio lavoro
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0); // Disegna primo frame
+      }
+      URL.revokeObjectURL(image.src); // svuota memoria
+      images[i] = image; // Array di immagini
+      if (imagesLoaded === frameCount) { // controlls
+        startAnimation(); // Inizia dopo la cache
+      }
+    };
+    image.onerror = () => {
+      console.error('Error loading image:', imagePath);
+    };
+    image.src = URL.createObjectURL(blob);
   }
-
-  loadingChunks = false;
 };
 
-// Load the next chunk of images when needed
-const loadNextChunk = () => {
-  const nextChunkStart = Math.floor(ball.frame / chunkSize) * chunkSize;
-  if (nextChunkStart > currentChunk * chunkSize && nextChunkStart < frameCount) {
-    currentChunk++;
-    preloadImages(nextChunkStart, format);
-  }
-};
-
-// Start the GSAP animation
+// GSAP
 const startAnimation = () => {
   gsap.to(ball, {
     frame: frameCount - 1,
     snap: "frame",
     ease: "none",
     scrollTrigger: {
-      scrub: 0.5,
-      pin: true,
+      scrub: true,
+      pin: ".canvas",
       end: "+=3000",
-      onUpdate: render,
-      onScrubComplete: loadNextChunk
+      onUpdate: () => render() // Aggiorna frame allo scroll
     }
   });
+
 
   gsap.fromTo('.ball-text', 
     { opacity: 0 },
@@ -101,10 +114,9 @@ const startAnimation = () => {
   
 };
 
-// Initialize
+
+// Esegui il tutto in asyncrono
 (async () => {
-  format = await checkImageFormat();
-  await preloadImages(0, format); // Preload the first chunk
-  startAnimation(); // Start the animation after the first chunk is loaded
-  window.addEventListener('pointerdown', loadNextChunk); // Load next chunks on scroll
+  const format = await checkImageFormat();
+  await preloadImages(format);
 })();
