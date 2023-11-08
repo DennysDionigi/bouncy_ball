@@ -1,18 +1,17 @@
-(async () => {
+(async() => {
   const canvas = document.querySelector('.canvas');
   const context = canvas.getContext('2d');
   const frameCount = 179;
-  const chunkSize = 20;
+  const chunkSize = 20; // Adjust chunk size as needed
   const images = new Array(frameCount);
-  let format = 'avif'; // Default format assumed
-  let loadedImagesCount = 0;
-  let allImagesLoaded = false;
+  let format = 'avif'; // Default to 'avif', will check for support
+  let currentChunk = 0;
 
+  // Set canvas dimensions to the window's dimensions
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  // Function to check supported image format
- // Controllo webp e avif
+  // Controllo webp e avif
 const checkImageFormat = async () => {
   if (createImageBitmap && window.fetch) {
     try {
@@ -27,7 +26,6 @@ const checkImageFormat = async () => {
   }
 };
 
-  // Function to return the path for a frame
   const currentFrame = (index, fmt) => `./pallina/${(index + 1).toString()}.${fmt}`;
 
   // Function to render the current frame
@@ -42,40 +40,33 @@ const checkImageFormat = async () => {
     }
   };
 
-  // Function to preload images in chunks
   const preloadImages = async (fmt) => {
-    for (let i = 0; i < frameCount; i += chunkSize) {
-      const chunkPromises = [];
-      for (let j = i; j < i + chunkSize && j < frameCount; j++) {
-        chunkPromises.push(new Promise(async (resolve) => {
-          const response = await fetch(currentFrame(j, fmt));
-          const blob = await response.blob();
-          const image = new Image();
-          image.src = URL.createObjectURL(blob);
-          image.onload = () => {
-            URL.revokeObjectURL(image.src);
-            images[j] = image;
-            loadedImagesCount++;
-            if (loadedImagesCount === frameCount) {
-              allImagesLoaded = true;
-            }
-            resolve();
-          };
-          image.onerror = resolve;
-        }));
+    while (currentChunk < Math.ceil(frameCount / chunkSize)) {
+      const chunkStart = currentChunk * chunkSize;
+      const chunkEnd = Math.min(chunkStart + chunkSize, frameCount);
+      for (let i = chunkStart; i < chunkEnd; i++) {
+        if (images[i]) continue; // Skip if already loaded
+        const imagePath = currentFrame(i, fmt);
+        const response = await fetch(imagePath);
+        const blob = await response.blob();
+        images[i] = new Image();
+        images[i].onload = () => {
+          if (i === 0) { // First image determines canvas size
+            canvas.width = images[0].width;
+            canvas.height = images[0].height;
+          }
+          if (i === frameCount - 1) { // Start animation when all images are loaded
+            startAnimation();
+          }
+        };
+        images[i].src = URL.createObjectURL(blob);
       }
-      await Promise.all(chunkPromises);
+      currentChunk++;
     }
   };
 
-  // Function to start the GSAP animation
   const startAnimation = () => {
-    if (!allImagesLoaded) {
-      console.error('Attempt to start animation before all images are loaded.');
-      return;
-    }
-    const ball = { frame: 0 }; // Object to keep track of the current frame
-    gsap.to(ball, {
+    gsap.to({ frame: 0 }, {
       frame: frameCount - 1,
       snap: "frame",
       ease: "none",
@@ -83,29 +74,14 @@ const checkImageFormat = async () => {
         scrub: true,
         pin: true,
         end: "+=3000",
-        onUpdate: () => render(Math.round(ball.frame))
+        onUpdate: self => render(self.frame | 0) // Ensure frame is an integer
       }
     });
-    gsap.fromTo('.ball-text', 
-      { opacity: 0 },
-      {
-        opacity: 1,
-        scrollTrigger: {
-          scrub: 1,
-          start: "50%",
-          end: "60%",
-          onComplete: () => gsap.to('.ball-text', { opacity: 0 }),
-        }
-      }
-    );
   };
 
-  format = await checkImageFormat();
-  await preloadImages(format);
-  const loadingCheckInterval = setInterval(() => {
-    if (allImagesLoaded) {
-      clearInterval(loadingCheckInterval);
-      startAnimation();
-    }
-  }, 100);
+  // Initialize
+  (async () => {
+    format = await checkImageFormat();
+    preloadImages(format); // Preload images
+  })();
 })();
