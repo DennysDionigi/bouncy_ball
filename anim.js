@@ -1,110 +1,69 @@
-const canvas = document.querySelector('.canvas');
-const context = canvas.getContext('2d');
-const frameCount = 179;
-const images = [];
-const ball = { frame: 0 };
-const cacheName = 'ball-animation-frames';
-
-// Set up the canvas size
+const canvas = document.querySelector(".canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Detect image format support
-const checkImageFormat = async () => {
-  if (createImageBitmap && window.fetch) {
-    try {
-      const webp = await fetch('data:image/webp;base64,UklGRi4AAABXRUJQVlA4TCEAAAAvAUAAEB8wAiMw' + 
-                               'AgSSNtse/cXjxyCCmrYNWPwmHRH9jwMA').then(r => r.blob()).then(createImageBitmap);
-      const avif = await fetch('data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZt' + 
-                               'aW1mMmF2aWZpbW1mMmF2aWYAAAAADnJpc2FtcGxlIGltYWdl').then(r => r.blob()).then(createImageBitmap);
-      return avif && webp ? 'avif' : 'webp';
-    } catch(e) {
-      return 'webp';
+const context = canvas.getContext("2d");
+const frameCount = 179;
+
+// Cache image URLs to avoid repeated fetching
+const imageUrls = [];
+for (let i = 0; i < frameCount; i++) {
+  imageUrls.push(`./pallina/${(i + 1).toString()}.{avif,webp}`);
+}
+
+const images = [];
+let ball = { frame: 0 };
+
+// Fetch images lazily and cache them
+let loadedImages = 0;
+for (let i = 0; i < frameCount; i++) {
+  const img = new Image();
+
+img.onload = () => {
+    loadedImages++;
+    if (loadedImages === frameCount) {
+      render();
     }
-  }
-};
+  };
 
-// Get image path based on format
-const getImagePath = (index, format) => `./pallina/${(index + 1).toString()}.${format}`;
+  images.push(img);
+}
 
-// Preload and cache images
-const preloadImages = async (format) => {
-  const cache = await caches.open(cacheName);
-  const imagePromises = [];
+gsap.to(ball, {
+  frame: frameCount - 1,
+  snap: "frame",
+  ease: "none",
+  scrollTrigger: {
+    scrub: 0.5,
+    pin: "canvas",
+    end: "500%",
+  },
+  onUpdate: render,
+});
 
-  for (let i = 0; i < frameCount; i++) {
-    const imagePath = getImagePath(i, format);
-    imagePromises.push(cache.add(imagePath));
-  }
-
-  await Promise.all(imagePromises);
-
-  for (let i = 0; i < frameCount; i++) {
-    const response = await cache.match(getImagePath(i, format));
-    const blob = await response.blob();
-    const img = new Image();
-    img.src = URL.createObjectURL(blob);
-    img.onload = () => {
-      images[i] = img;
-      URL.revokeObjectURL(img.src);
-      if (i === 0) render(); // Start the rendering loop once the first image is loaded
-    };
-  }
-};
-
-// Initialize and start the animation
-// Initialize and start the animation
-const initAnimation = async () => {
-  const format = await checkImageFormat();
-  await preloadImages(format);
-
-  gsap.to(ball, {
-    frame: frameCount - 1,
-    snap: "frame",
-    ease: "none",
-    scrollTrigger: {
-      trigger: canvas,
-      scrub: 0.5,
-      start: "top bottom",
-      end: "bottom top",
-      pin: canvas,
-      onUpdate: self => {
-        
-        ball.frame = self.progress * (frameCount - 1);
-        render();
-      }
-    }
-  });
-
-  // Fade text
-  gsap.fromTo('.ball-text', { opacity: 0 }, {
+gsap.fromTo(
+  ".ball-text",
+  {
+    opacity: 0,
+  },
+  {
     opacity: 1,
     scrollTrigger: {
-      trigger: '.ball-text',
-      start: "top center",
-      end: "bottom center",
-      toggleActions: 'play none none reverse',
-      fastScrollEnd: 'true',
-      preventOverlaps:'true'
-    }
-  });
-};
+      scrub: 1,
 
-
-
-
-// Popola canvas
-const render = () => {
-  requestAnimationFrame(render);
-  const index = Math.min(ball.frame, images.length - 1);
-  const image = images[index];
-  if (image) {
-    context.canvas.width = image.width;
-    context.canvas.height = image.height;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(image, 0, 0);
+      start: "50%",
+      end: "60%",
+    },
+    onComplete: () => {
+      gsap.to(".ball-text", { opacity: 0 });
+    },
   }
-};
+);
 
-// Inizia anim
-initAnimation();
+function render() {
+  context.canvas.width = images[0].width;
+  context.canvas.height = images[0].height;
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(images[ball.frame], 0, 0);
+}
