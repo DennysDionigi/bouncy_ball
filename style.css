@@ -33,3 +33,4 @@ position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;t
 @media(width > 1024px){ font-size: 5rem;right: 20%;bottom: 40%;transform: translate(-20%, -40%)}
 }
 
+.icon_chat{filter: sepia(2) hue-rotate(-301deg) saturate(2) contrast(1.1);}
