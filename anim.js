@@ -1,16 +1,16 @@
 const canvas = document.querySelector(".canvas");
 const context = canvas.getContext("2d");
-context.scale(.5, .5);
+context.scale(3, 3);
 const frameCount = 179;
 const images = [];
 const ball = { frame: 0 };
 const cacheName = 'ball-animation-frames';
 
-// Set up the canvas size
+// Dimensione canvas
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Function to check for AVIF and WEBP support and determine the image format to use
+// Controllo webp e avif
 const checkImageFormat = async () => {
   if (createImageBitmap && window.fetch) {
     try {
