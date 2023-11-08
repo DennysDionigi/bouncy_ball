@@ -28,7 +28,7 @@ canvas {
 .details,h1 {font-size:2rem;}
 
 .ball-text {
-position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);pointer-events:none;
+position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);pointer-events:none;opacity:0;
 @media(width > 1024px){ font-size: 5rem;right: 20%;bottom: 40%;transform: translate(-20%, -40%)}
 }
 
