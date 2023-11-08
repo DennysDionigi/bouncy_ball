@@ -22,7 +22,6 @@ const checkImageFormat = async () => {
       return 'webp';
     }
   }
-  return 'jpeg'; // Fallback for very old browsers
 };
 
 // Get image path based on format
@@ -85,6 +84,8 @@ const initAnimation = async () => {
       start: "top center",
       end: "bottom center",
       toggleActions: 'play none none reverse',
+      fastScrollEnd: 'true',
+      preventOverlaps:'true'
     }
   });
 };
