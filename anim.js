@@ -4,6 +4,7 @@ class PreloadedImage extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.frameCount = 179;
+    this.images = [];
     this.imagePromises = [];
     this.preloadImages();
   }
@@ -12,11 +13,10 @@ class PreloadedImage extends HTMLElement {
     for (let i = 0; i < this.frameCount; i++) {
       const img = new Image();
       img.src = this.getImageSrc(i);
-      const promise = new Promise((resolve) => {
-        img.onload = () => resolve(img);
-      });
-      this.imagePromises.push(promise);
-      this.shadowRoot.appendChild(img);
+      this.imagePromises.push(new Promise((resolve) => {
+        img.onload = resolve;
+      }));
+      this.images.push(img);
     }
 
     Promise.all(this.imagePromises).then(() => {
@@ -27,18 +27,23 @@ class PreloadedImage extends HTMLElement {
   getImageSrc(index) {
     return `./pallina/${(index + 1).toString()}.avif`;
   }
+
+  getImages() {
+    return this.images;
+  }
 }
 
 customElements.define('preloaded-image', PreloadedImage);
 
 // Main document script
-document.getElementById('image-preloader').addEventListener('images-preloaded', () => {
+document.getElementById('image-preloader').addEventListener('images-preloaded', function() {
   const canvas = document.querySelector('.canvas');
   const context = canvas.getContext('2d');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  
-  const images = document.getElementById('image-preloader').shadowRoot.querySelectorAll('img');
+
+  const preloader = document.getElementById('image-preloader');
+  const images = preloader.getImages();
   let ball = { frame: 0 };
 
   // GSAP animation for the ball
@@ -49,7 +54,7 @@ document.getElementById('image-preloader').addEventListener('images-preloaded', 
     scrollTrigger: {
       scrub: 0.5,
       pin: '.canvas',
-      end: '500%'
+      end: '+=' + window.innerHeight * 4
     },
     onUpdate: () => render(context, canvas, images, ball)
   });
@@ -74,8 +79,11 @@ document.getElementById('image-preloader').addEventListener('images-preloaded', 
   render(context, canvas, images, ball);
 });
 
-// Render function
 function render(context, canvas, images, ball) {
+  const image = images[ball.frame];
+  // Resize canvas to match the image size if necessary
+  canvas.width = image.width;
+  canvas.height = image.height;
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(images[ball.frame], 0, 0);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height); // Draw the image scaled to canvas size
 }
