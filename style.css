@@ -9,5 +9,5 @@ position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;t
 .icon_chat{display:inline-block;filter: sepia(2) hue-rotate(-301deg) saturate(2) contrast(1.1);}
 :has(h1:hover) body{background: #000;}
 :has(.details:hover) h1 {transform: scale(1.1);text-underline-offset:1ch;}
-:has(.details,h1,a):is(:hover,:focus-within) .ball-text{opacity:0} 
+:has(.details,h1,a):is(:hover,:focus-within) .ball-text{opacity:0!important} 
 
