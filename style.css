@@ -29,6 +29,7 @@ canvas {
 .details,h1 {font-size:2rem;}
 
 h1{text-underline-offset:.5ch;transition: .5s ease}
+h1:hover{transform:scale(1.2)}
 
 .ball-text {
 position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);pointer-events:none;opacity:0;mix-blend-mode: overlay;-webkit-mix-blend-mode: overlay;
