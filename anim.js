@@ -67,7 +67,7 @@ document.getElementById('image-preloader').addEventListener('images-preloaded', 
       scrollTrigger: {
         scrub: 1,
         start: '45%',
-        end: '55%',
+        end: '58%',
          preventOverlaps: 1,
           fastScrollEnd: 1
       },
