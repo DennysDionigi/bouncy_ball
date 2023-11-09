@@ -2,12 +2,12 @@
 
 
 .ball-text {
-position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);pointer-events:none;opacity:0;mix-blend-mode: overlay;-webkit-mix-blend-mode: overlay;
-@media(width > 1024px){ font-size: 5rem;right: 20%;bottom: 40%;transform: translate(-20%, -40%)}
+position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);pointer-events:none;opacity:0;mix-blend-mode: overlay;-webkit-mix-blend-mode: overlay;will-change:opacity;isolation:isolate;
+@media(width > 1024px){ font-size: 5rem;right: 20%;bottom: 50%;transform: translate(-20%, -40%)}
 }
 
 .icon_chat{display:inline-block;filter: sepia(2) hue-rotate(-301deg) saturate(2) contrast(1.1);}
 :has(h1:hover) body{background: #000;}
 :has(.details:hover) h1 {transform: scale(1.1);text-underline-offset:1ch;}
-:has(.details,h1,a):where(:hover,:focus-within) .ball-text{opacity:0;visibility:hidden;content-visibility:hidden} 
+:has(.details,h1,a):is(:hover,:focus-within) .ball-text{opacity:0} 
 
