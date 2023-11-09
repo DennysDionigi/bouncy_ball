@@ -1,10 +1,10 @@
 *,::after,::before{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:rgb(0 0 0/0);text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}:root,body{scroll-behavior:smooth;touch-action:pan-x pan-y}body{font-family:"Lato",sans-serif;overflow-x:hidden;transition:background .38s ease}canvas{width:100vw;height:100vh;object-fit:cover}.details,h1{font-size:2rem}.details{min-height:100vh;display:flex;justify-content:center;align-items:center;z-index:1;position:relative}h1{text-underline-offset:.5ch;transition:.5s ease}h1:hover{transform:scale(1.2);text-underline-offset:.6ch;}
 
 
-.ball-text {
+/*.ball-text {
 position: fixed;z-index: 2;color: white;font-size: 2rem;right: 50%;bottom: 25%;transform: translate(50%, 50%);pointer-events:none;opacity:0;mix-blend-mode: overlay;-webkit-mix-blend-mode: overlay;
 @media(width > 1024px){ font-size: 5rem;right: 20%;bottom: 40%;transform: translate(-20%, -40%)}
-}
+}*/
 
 .icon_chat{display:inline-block;filter: sepia(2) hue-rotate(-301deg) saturate(2) contrast(1.1);}
 :has(h1:hover) body{background: #000;}
