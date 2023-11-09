@@ -66,8 +66,10 @@ document.getElementById('image-preloader').addEventListener('images-preloaded', 
       opacity: 1,
       scrollTrigger: {
         scrub: 1,
-        start: '50%',
-        end: '60%'
+        start: '45%',
+        end: '55%',
+         preventOverlaps: 1,
+          fastScrollEnd: 1
       },
       onComplete: () => {
         gsap.to('.ball-text', { opacity: 0 });
